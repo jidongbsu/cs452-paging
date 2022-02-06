@@ -29,7 +29,7 @@ Your page fault handler will work as a kernel module. The Linux kernel has its o
 
 The starter code already provides you with the code for a kernel module called infiniti, and the code for a user-level library which interacts with the kernel module via ioctls. The kernel module implements a memory manager system, which manages the above reserved memory region. To install the module, run *make* and then *sudo insmod infiniti.ko*; to remove it, run *sudo rmmod infiniti*. Yes, in rmmod, whether or not you specify *ko* does not matter; but in insmod, you must have that *ko*.
 
-What this module currently does is: create a file called /dev/infiniti, which provides an inteface for applications to communicate with the kernel module. In this assignment, the only way to communicate between applications and the kernel module, is applications issue ioctl() system calls to this device file (i.e., /dev/infiniti), and the kernel module will handle these ioctl commands. A list of commands are currently supported:
+What this module currently does is: create a file called /dev/infiniti, which provides an inteface for applications to communicate with the kernel module. One way to communicate between applications and the kernel module, is applications issue ioctl() system calls to this device file (i.e., /dev/infiniti), and the kernel module will handle these ioctl commands. A list of commands are currently supported:
 
  - LAZY\_ALLOC: Applications call library function *infiniti_malloc*(), which sends this command to the kernel module, so as to allocate memory.
  - LAZY\_FREE: Applications call library function *infiniti_free*(), which sends this command to the kernel module, so as to free memory
