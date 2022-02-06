@@ -128,6 +128,8 @@ success
 ```
 infiniti-test4 is just for demonstration purpose. When you run it, in you dmesg log, or /var/log/messages, you will see the dump of the reserved virtual memory region.
 
+Note that seg fault message showed when running infiniti-test2, is expected, and is intentionally showed. It happens because the test program tries to access a freed buffer.
+
 # Submission
 
 Due: 23:59pm, March 1st, 2022. Late submission will not be accepted/graded.
