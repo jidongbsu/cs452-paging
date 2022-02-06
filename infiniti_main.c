@@ -15,7 +15,8 @@
 #include "fault.h"
 #include "pgtables.h"
 
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v2");
+MODULE_DESCRIPTION("CS452 Infiniti");
 
 #define DEBUG 1
 

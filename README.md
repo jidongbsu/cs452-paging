@@ -44,6 +44,8 @@ You need to implement the following 2 functions in the kernel module:
  - *infiniti_do_page_fault*(): This function will be called when the application triggers a page fault. In this function you should ask physical memory from the kernel and then update the page tables.
  - *infiniti_free_pa*(): this function will be called when the application calls *infiniti_free*(). In this function you should give the physical memory back to the kernel and then update the page tables.
 
+The only file you should modify is fault.c.
+
 ## Predefined Data Structures, Global Variables, and Provided Helper Functions
  - *invlpg*().
  - *get_cr3*().
