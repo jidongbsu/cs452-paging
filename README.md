@@ -4,7 +4,7 @@ In this assignment, we will write a Linux kernel module called infiniti. This mo
 
 ## Learning Objectives
 
- - Get further familiar with another frequently used system call function: the ioctl() system call.
+ - Get further familiar with the frequently used system call function: the ioctl() system call.
  - Understand the x86 64-bit multiple level page table structures.
 
 ## Important Notes
