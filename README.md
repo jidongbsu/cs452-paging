@@ -58,10 +58,10 @@ I used the following APIs.
 ```c
 uintptr_t kernel_addr = 0;
 kernel_addr = (uintptr_t)get_zeroed_page(GFP_KERNEL);
-	if (!kernel_vaddr) {
-		printk(KERN_INFO "failed to allocate one page\n");
-		return -ENOMEM;
-	}
+if (!kernel_vaddr) {
+	printk(KERN_INFO "failed to allocate one page\n");
+	return -ENOMEM;
+}
 ```
 
 and then later this is how you use *free_page*().
