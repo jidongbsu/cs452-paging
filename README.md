@@ -21,7 +21,7 @@ Read these chapters carefully in order to prepare yourself for this project:
 
 # Specification
 
-You will develop a page fault handler in a Linux system. Please refer to the book chapter to have a basic understanding of what page fault handlder does.
+You will develop a page fault handler in a Linux system. Please refer to the book chapters to have a basic understanding of what page fault handler does.
 
 Your page fault handler will work as a kernel module. The Linux kernel has its own page fault handler. In this assignment, we do not intend to take over the default page fault handler, rather we try to maintain a seperate handler, this handler will only handle memory pages mapped into a specific reserved memory region which the kernel will ignore.
 
