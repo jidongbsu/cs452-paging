@@ -27,7 +27,7 @@ Your page fault handler will work as a kernel module. The Linux kernel has its o
 
 ## The Starter Code
 
-The starter code already provides you with the code for a kernel module, and the code for a user-level library which interacts with the kernel module via ioctls. The kernel module implements a memory manager system, which manages the above reserved memory region.
+The starter code already provides you with the code for a kernel module called infiniti, and the code for a user-level library which interacts with the kernel module via ioctls. The kernel module implements a memory manager system, which manages the above reserved memory region. To install the module, run *make* and then *sudo insmod infiniti.ko*; to remove it, run *sudo rmmod infiniti*. Yes, in rmmod, whether or not you specify *ko* does not matter; but in insmod, you must have that *ko*.
 
 What this module currently does is: create a file called /dev/infiniti, which provides an inteface for applications to communicate with the kernel module. In this assignment, the only way to communicate between applications and the kernel module, is applications issue ioctl() system calls to this device file (i.e., /dev/infiniti), and the kernel module will handle these ioctl commands. A list of commands are currently supported:
 
@@ -36,7 +36,7 @@ What this module currently does is: create a file called /dev/infiniti, which pr
  - DUMP\_STATE: Applications call library function *infiniti_dump*(), which sends this command to the kernel module, so as to dump the state of our reserved memory region.
  - PAGE\_FAULT: Applications call library functions *init_infiniti*(), which registers the application into our memory manager system. Applications managed by our system need to use *infiniti_malloc*() to allocate dynamic memory, and use *infiniti_free*() to free dynamic memory. Such applications need to have their own page fault handler, because we only allocate memory from the aforementioned reserved memory region.
 
-The starter code also includes a user-level library, which implements functions such as *init_infiniti*(), *infiniti_malloc*(), *infiniti_free*(), *infiniti_dump*(). Several testing programs (infiniti-test1.c, infiniti-test2.c, infiniti-test3.c, infiniti-test4.c) are also provided. The user-level library, as well as the test programs, are located in the **user** folder.
+The starter code also includes a user-level library, which implements functions such as *init_infiniti*(), *infiniti_malloc*(), *infiniti_free*(), *infiniti_dump*(). Several testing programs (infiniti-test1.c, infiniti-test2.c, infiniti-test3.c, infiniti-test4.c) are also provided. The user-level library, as well as the test programs, are located in the **user** folder. Once you navigate into the **user** folder, you need to run *make* to compile these test programs, the user-level library will be automatically compiled and linked into the resulted binary of the test programs.
 
 ## Functions You Need to Implement
 
