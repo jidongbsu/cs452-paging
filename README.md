@@ -32,7 +32,7 @@ The starter code already provides you with the code for a kernel module called i
 What this module currently does is: create a file called /dev/infiniti, which provides an inteface for applications to communicate with the kernel module. One way to communicate between applications and the kernel module, is applications issue ioctl() system calls to this device file (i.e., /dev/infiniti), and the kernel module will handle these ioctl commands. A list of commands are currently supported:
 
  - LAZY\_ALLOC: Applications call library function *infiniti_malloc*(), which sends this command to the kernel module, so as to allocate memory.
- - LAZY\_FREE: Applications call library function *infiniti_free*(), which sends this command to the kernel module, so as to free memory
+ - LAZY\_FREE: Applications call library function *infiniti_free*(), which sends this command to the kernel module, so as to free memory.
  - DUMP\_STATE: Applications call library function *infiniti_dump*(), which sends this command to the kernel module, so as to dump the state of our reserved memory region.
  - PAGE\_FAULT: Applications call library functions *init_infiniti*(), which registers the application into our memory manager system. Applications managed by our system need to use *infiniti_malloc*() to allocate dynamic memory, and use *infiniti_free*() to free dynamic memory. Such applications need to have their own page fault handler, because we only allocate memory from the aforementioned reserved memory region.
 
