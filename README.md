@@ -70,6 +70,8 @@ and then later this is how you use *free_page*().
 free_page(kernel_addr);
 ```
 
+ - *__va()*.
+
 ## Expected Results
 
 If you compile the stater code, install the default infiniti kernel module, and run the tests, you will get the following results:
