@@ -1,4 +1,7 @@
 KERNEL_SOURCE=/lib/modules/$(shell uname -r)/build
+MY_CFLAGS += -g -DDEBUG -O0
+ccflags-y += ${MY_CFLAGS}
+CC += ${MY_CFLAGS}
 
 obj-m += infiniti.o
 
@@ -8,6 +11,7 @@ infiniti-objs += fault.o infiniti_main.o
 
 all:
 	make -C ${KERNEL_SOURCE} M=`pwd` modules
+	EXTRA_CFLAGS="$(MY_CFLAGS)"
 clean:
 	make -C $(KERNEL_SOURCE) M=$(PWD) clean
 	/bin/rm -rf .tmp_versions/

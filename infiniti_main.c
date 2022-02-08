@@ -13,11 +13,13 @@
 
 #include "infiniti.h"
 #include "fault.h"
-#include "pgtables.h"
 
 MODULE_LICENSE("GPL v2");
+MODULE_AUTHOR("Jidong Xiao"); /* Note: change this line to your name! */
 MODULE_DESCRIPTION("CS452 Infiniti");
 
+#define PAGE_POWER 12
+#define PAGE_ADDR(x) (((x) >> PAGE_POWER) << PAGE_POWER)
 #define DEBUG 1
 
 /* when user testing program opens /dev/infiniti, this function gets called by infiniti_open(),
@@ -30,7 +32,10 @@ MODULE_DESCRIPTION("CS452 Infiniti");
  * this is how we pass information from infiniti_open() to infiniti_ioctl(). */
 struct infiniti_vm_area_struct * infiniti_init_process(void) {
 	/* allocate virtual memory for two struct struct infiniti_vm_area_struct instances.
-	 * infiniti_vma to represent the list, where as node just represents the initial big node we have. */
+	 * infiniti_vma to represent the list, where as node just represents the initial big node we have.
+	 * it should be noted that infiniti_vma will not be used when traversing the list, which means,
+	 * if we only have infiniti_vma, but don't have any nodes on this list, our list will be treated as an empty list, i.e.,
+	 * function list_for_each_safe() will just skip the loop and not do anything. */
 	struct infiniti_vm_area_struct *infiniti_vma = (struct infiniti_vm_area_struct *)kmalloc(sizeof(struct infiniti_vm_area_struct), GFP_KERNEL);
 	struct infiniti_vm_area_struct *node = (struct infiniti_vm_area_struct *) kmalloc(sizeof(struct infiniti_vm_area_struct), GFP_KERNEL);
     printk(KERN_INFO "process initialization...\n");
@@ -38,7 +43,7 @@ struct infiniti_vm_area_struct * infiniti_init_process(void) {
 	node->status = FREE;
 	/* in this project, we assume this region of the virtual address space will not be used, and thus we use it. 
 	 * remember, this memory region is a user-space region; thus all the memory regions on our list is user-space memory regions. */
-	node->num_pages = ((INFINITI_MEM_REGION_END - INFINITI_MEM_REGION_START) >> PAGE_POWER_4KB); // PAGE_POWER_4KB is 12, 2^12=4KB.
+	node->num_pages = ((INFINITI_MEM_REGION_END - INFINITI_MEM_REGION_START) >> PAGE_POWER); // PAGE_POWER is 12, 2^12=4KB.
 	node->start = INFINITI_MEM_REGION_START;
 
 	list_add(&(node->list), &(infiniti_vma->list));
@@ -53,10 +58,13 @@ void infiniti_deinit_process(struct infiniti_vm_area_struct *infiniti_vma) {
     printk(KERN_INFO "process de-initialization...\n");
 	list_for_each_safe(pos, next, &(infiniti_vma->list)){
 		node = list_entry(pos, struct infiniti_vm_area_struct, list);
-		/* each node may contain multiple pages, thus we release one page after another.  */
-        for(i = 0; i < node->num_pages; i++){
-            infiniti_free_pa(node->start + (4096*i));	// start is a virtual address, but this is a user-space va.
-        }
+		/* we free the physical memory, only if this node is reserved. */
+		if(node->status == RESERVED) {
+			// each node may contain multiple pages, thus we release one page after another. 
+        	for(i = 0; i < node->num_pages; i++){
+            	infiniti_free_pa(node->start + (4096*i));	// start is a virtual address, but this is a user-space va.
+        	}
+		}
 		list_del(pos);
 		kfree(node);
 	}
@@ -75,7 +83,7 @@ uintptr_t infiniti_alloc_vspace(struct infiniti_vm_area_struct *infiniti_vma, u6
 	/* traverse infiniti_vma->list, find one whose status is FREE. */
 	list_for_each_safe(pos, next, &(infiniti_vma->list)) {
 		node = list_entry(pos, struct infiniti_vm_area_struct, list);
-		if(node->status == FREE && node->num_pages/PAGE_SIZE_4KB >= num_pages){
+		if(node->status == FREE && node->num_pages >= num_pages){
 			break;
 		}
 	}
@@ -87,7 +95,7 @@ uintptr_t infiniti_alloc_vspace(struct infiniti_vm_area_struct *infiniti_vma, u6
 	printk(KERN_INFO "node to break apart: 0x%p\n", (void *)node->start);
 	node->status = RESERVED;
 	/* if it's an exact match */
-	if(node->num_pages == num_pages*PAGE_SIZE_4KB){
+	if(node->num_pages == num_pages){
 		return node->start;
 	}
 
@@ -98,11 +106,11 @@ uintptr_t infiniti_alloc_vspace(struct infiniti_vm_area_struct *infiniti_vma, u6
 	 * the one marked as allocated will be returned to the user. 
 	 * note: when allocating one new node, we initialize its size, start, and status. */
 	list_add(&(new_node->list), &(infiniti_vma->list));
-	new_node->num_pages = node->num_pages - (num_pages*PAGE_SIZE_4KB);
-	new_node->start = node->start + (num_pages << PAGE_POWER_4KB); // the first num_pages are allocated, we keep the remaining.
+	new_node->num_pages = node->num_pages - num_pages;
+	new_node->start = node->start + (num_pages << PAGE_POWER); // the first num_pages are allocated, we keep the remaining.
 	new_node->status = FREE;
 
-	node->num_pages = (num_pages*PAGE_SIZE_4KB);
+	node->num_pages = num_pages;
 	/* so basically we add new_node to the list and keep both new_node and node,
 	 * but we return node->start to the caller. note that the size of node is deducted,
 	 * and we keep the remainder in new_node. */

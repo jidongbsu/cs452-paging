@@ -1,11 +1,10 @@
+#include <linux/uaccess.h>
 #include <linux/slab.h>
+#include <asm/pgtable.h>
+#include <asm/pgtable_types.h>
+
 #include "infiniti.h"
 #include "fault.h"
-#include "pgtables.h"
-
-/* segv signal error code, defined in /usr/include/asm-generic/siginfo.h */
-#define SEGV_MAPERR 1 // segv signal, error code 1: address not mapped to object
-#define SEGV_ACCERR 2 // segv signal, error code 2: invalid permissions for mapped object
 
 #define DEBUG 1
 
@@ -22,14 +21,66 @@ int is_valid_address(struct infiniti_vm_area_struct *infiniti_vma, uintptr_t use
     return 0;
 }
 
-int is_entire_table_free(void *table){
+int is_entire_page_table_free(pte_t *table){
 	int i = 0;
 	/* all four tables have 512 entries, each has 8 bytes, and thus 4KB per entry.. */
 	for(i = 0; i < 512; i++){
+		/* each entry is 8 bytes. */
 		int offset = i * 8;
-		pte64_t * page = (table + offset);
+		pte_t *pte = (table + offset);
 		/* as long as one of them is one, then we can't free them or invalidate the tlb entries. */
-		if(page->present == 1){
+		if(pte_present(*pte) == 1){
+			/* not entirely free */
+			return 0;
+		}
+	}
+	/* table entirely free */
+	return 1;
+}
+
+int is_entire_pmd_table_free(pmd_t *table){
+	int i = 0;
+	/* all four tables have 512 entries, each has 8 bytes, and thus 4KB per entry.. */
+	for(i = 0; i < 512; i++){
+		/* each entry is 8 bytes. */
+		int offset = i * 8;
+		pmd_t *pmd = (table + offset);
+		/* as long as one of them is one, then we can't free them or invalidate the tlb entries. */
+		if(pmd_present(*pmd) == 1){
+			/* not entirely free */
+			return 0;
+		}
+	}
+	/* table entirely free */
+	return 1;
+}
+
+int is_entire_pud_table_free(pud_t *table){
+	int i = 0;
+	/* all four tables have 512 entries, each has 8 bytes, and thus 4KB per entry.. */
+	for(i = 0; i < 512; i++){
+		/* each entry is 8 bytes. */
+		int offset = i * 8;
+		pud_t *pud = (table + offset);
+		/* as long as one of them is one, then we can't free them or invalidate the tlb entries. */
+		if(pud_present(*pud) == 1){
+			/* not entirely free */
+			return 0;
+		}
+	}
+	/* table entirely free */
+	return 1;
+}
+
+int is_entire_pgd_table_free(pgd_t *table){
+	int i = 0;
+	/* all four tables have 512 entries, each has 8 bytes, and thus 4KB per entry.. */
+	for(i = 0; i < 512; i++){
+		/* each entry is 8 bytes. */
+		int offset = i * 8;
+		pgd_t *pgd = (table + offset);
+		/* as long as one of them is one, then we can't free them or invalidate the tlb entries. */
+		if(pgd_present(*pgd) == 1){
 			/* not entirely free */
 			return 0;
 		}
@@ -46,8 +97,8 @@ int is_entire_table_free(void *table){
  * */
 
 int infiniti_do_page_fault(struct infiniti_vm_area_struct *infiniti_vma, uintptr_t fault_addr, u32 error_code) {
-	printk("Page fault!\n");
-	return -1;
+    printk("Page fault!\n");
+    return -1;
 }
 
 /* this function takes a user VA and free its PA as well as its kernel va. */
