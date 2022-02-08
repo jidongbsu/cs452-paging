@@ -53,7 +53,7 @@ The only file you should modify is fault.c.
 ## Related Kernel APIs
 
 I used the following APIs. 
- - *get_zeroed_page*()and *free_page*(). You call *get_zeroed_page*() to get a free memory page from the kernel, later on you call *free_page*() to give the memory back to the kernel. This is how you use *get_zeroed_pages*():
+ - *get_zeroed_page*()and *free_page*(). You call *get_zeroed_page*() to get a free memory page (filled with zeros) from the kernel, later on you call *free_page*() to give the memory back to the kernel. This is how you use *get_zeroed_pages*():
 
 ```c
 uintptr_t kernel_addr = 0;
@@ -70,7 +70,21 @@ and then later this is how you use *free_page*().
 free_page(kernel_addr);
 ```
 
- - *__va()*.
+the address returned by *get_zeroed_page*() is a page aligned address, which means its lower 12 bits are 0, and its corresponding physical address also has its lower 12 bits be 0. For example, if you add a printk statement to print the address represented by the above *kernel_vaddr* variable:
+
+```c
+printk(KERN_INFO "kernel address is %lx, and its physical address is %lx\n", kernel_vaddr, __pa(kernel_vaddr));
+```
+
+in your log, you will see some message like this:
+
+```console
+kernel address is ffff880077313000, and its physical address is 77313000
+kernel address is ffff880059eca000, and its physical address is 59eca000
+kernel address is ffff880075faf000, and its physical address is 75faf000
+```
+
+ - *__va()* and *__pa()*. You may only need these two functions for debugging purpose, given a physical address, *__va*() gives you its virtual address; given a virtual address, *__pa*() gives you its physical address. Of course, the virtual address gets involved here must be a kernel virtual address. For user virtual address, we still need to walk the page table to do the translation.
 
 ## Expected Results
 
@@ -130,7 +144,37 @@ success
 ```
 infiniti-test4 is just for demonstration purpose. When you run it, in you dmesg log, or /var/log/messages, you will see the dump of the reserved virtual memory region.
 
-Note that seg fault message showed when running infiniti-test2, is expected, and is intentionally showed. It happens because the test program tries to access a freed buffer.
+Note that seg fault message showed when running infiniti-test2, is expected, and is intentionally showed. It happens because the test program tries to access a freed buffer. If yours does not show this seg fault message, it means your *infiniti_free_pa*() function is not implemented correctly. For example, if your *infiniti_free_pa*() function is completely empty, but your *infiniti_do_page_fault*() works correctly, then this is what you will see when running infiniti-test2.
+
+```console
+[cs452@localhost user]$ ./infiniti-test2
+Hello Boise!
+Hello Boise!
+```
+
+The logic here is, the test program allocates a buffer to store this message, and then the program prints this message; and then the program tries to free its memory, however, because your *infiniti_free_pa*() does nothing, the memory will not be freed, and the page table mappings are therefore still there, thus the program can still print this same message. A fully functioning system would tell the program this is not allowed, and would kill the program and show a seg fault message.
+
+## Walk Through the 4-Level Page Tables
+
+In this assignment, we only consider 4KB pages, i.e., each page is 4KB. By default, a 4-level page table structure is used in the Linux kernel running on 64-bit x86 platforms. In Intel's terminology, these 4-level tables are called:
+
+ - PML4, or page map level 4; each entry in this table is called a PML4E, i.e., a page map level 4 entry.
+ - PDPT, or page directory pointer table; each entry in this table is called a PDPTE, i.e., a page directory pointer table entry.
+ - PDT, or page directory table; each entry in this table is called a PDTE, i.e., a page directory table entry.
+ - PT, or page table; each entry in this table is called a PTE, i.e., a page table entry.
+
+Each of these table has 512 entries, and each entry is 8 bytes, and thus in total it's 4KB per table, which is one page.
+
+But Linux kernel has its own naming conventions. The 4-level page tables are known as:
+
+ - Page Global Directory (PGD)
+ - Page Upper Directory (PUD).
+ - Page Middle Directory (PMD).
+ - Page Table Entry directory (PTE).
+
+In this assignment, we will use the Linux kernel naming convention.
+
+We need to walk through all of these tables whenever we need to translate a virtual address to a physical address. This whole process starts from the register *CR3* - this register always points to the physical address of the PML4 table base, i.e., the starting address of the PML4 table. 
 
 # Submission
 
