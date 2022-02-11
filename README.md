@@ -60,8 +60,13 @@ void infiniti_free_pa(uintptr_t user_addr)
  Before the application calls your *infiniti_free_pa*() (via *infiniti_free*()), this *user_addr* is mapped to some physical address - thank to your *infiniti_do_page_fault*(). Now when the application calls your *infiniti_free_pa*() (via *infiniti_free*()), you should update the page tables so as to destroy the mapping. In other words, when the application calls *infiniti_free*(), the mapping will no longer exist, and the application should no longer be able to access that same physical address. 
 
 ## Predefined Data Structures, Global Variables, and Provided Helper Functions
- - *invlpg*(): we call this function to invalidate the tlb entry for one specific page. This function takes a virtual address, the processor determines the page that contains that virtual address and flushes all TLB entries for that page.
- - *get_cr3*(): we call this function to get the content of the cr3 register.
+ - *invlpg*(): we call this function to invalidate the tlb entry for one specific page. This function takes a virtual address, the processor determines the page that contains that virtual address and flushes all TLB entries for that page. You should call this function whenever you modify a page table entry.
+ - *get_cr3*(): we call this function to get the content of the cr3 register. This is how you call it:
+
+```c
+unsigned long cr3;
+cr3 = get_cr3();
+```
 
 ## Related Kernel APIs
 
