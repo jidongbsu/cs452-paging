@@ -5,7 +5,7 @@ CFLAGS =
 LIB_OBJS = harness.a
 
 OBJS =  infiniti-test1 infiniti-test2 infiniti-test3\
-	infiniti-test4\
+	infiniti-test4 infiniti-test5 infiniti-test6\
 
 build = \
 	@if [ -z "$V" ]; then \

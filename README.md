@@ -39,7 +39,7 @@ What this module currently does is: create a file called /dev/infiniti, which pr
 
 The starter code will manage the reserved memory region, but it will not map any virtual address into a physical address. Thus, when the application tries to call *infiniti_malloc*(), if memory in the reserved memory region is available, the malloc function will succeed, and a pointer will be returned, just like the regular malloc() function. However, because the virtual address pointed to by this pointer is not mapped into anywhere in the physical memory, any access to such an address will just fail. When that access fails, the kernel will deliver a signal to the process (i.e., the application), normally this siginal will kill the process, but the process is configured (in *init_infiniti*())to intercept such signals and when such signals are received, the process will deliver a PAGE\_FAULT command to the kernel module, and now in this kernel module, your page fault handler *infiniti_do_page_fault*() will be called. In this handler function, you need to create the map, between this user space address, and a physical address. To achieve this, you call *get_zeroed_page*() to allocate physical memory, and then you update the page table so that that user space address is mapped to this physical address. After that, your *infiniti_do_page_fault*() will return, and the applicantion will try to access that user space address again, and this time it will succeed - if your *infiniti_do_page_fault*() function has updated the page table correctly.
 
-The starter code also includes a user-level library, which implements functions such as *init_infiniti*(), *infiniti_malloc*(), *infiniti_free*(), *infiniti_dump*(). Several testing programs (infiniti-test1.c, infiniti-test2.c, infiniti-test3.c) are also provided. The user-level library, as well as the test programs, are located in the **user** folder. Once you navigate into the **user** folder, you need to run *make* to compile these test programs, and at the same time the user-level library will be automatically compiled and linked into the resulted binary of the test programs.
+The starter code also includes a user-level library, which implements functions such as *init_infiniti*(), *infiniti_malloc*(), *infiniti_free*(), *infiniti_dump*(). Several testing programs (infiniti-test[1-6].c) are also provided. The user-level library, as well as the test programs, are located in the **user** folder. Once you navigate into the **user** folder, you need to run *make* to compile these test programs, and at the same time the user-level library will be automatically compiled and linked into the resulted binary of the test programs.
 
 ## Functions You Need to Implement
 
@@ -110,6 +110,12 @@ Segmentation fault (core dumped)
 Segmentation fault (core dumped)
 [cs452@localhost user]$ ./infiniti-test3
 Segmentation fault (core dumped)
+[cs452@localhost user]$ ./infiniti-test4
+Segmentation fault (core dumped)
+[cs452@localhost user]$ ./infiniti-test5
+Segmentation fault (core dumped)
+[cs452@localhost user]$ ./infiniti-test6
+Segmentation fault (core dumped)
 ```
 
 Once your implementation is complete, you install the infiniti kernel module, and run the tests, you should get the following results:
@@ -153,6 +159,23 @@ buf is a
 buf is a
 test
 success
+[cs452@localhost user]$ ./infiniti-test4
+infiniti_malloced 2692 bytes and stored address 0x1000000000 at x[14]
+infiniti_freed address 0x100002a000 of size 1136 in x[83]
+infiniti_freed address 0x1000036000 of size 3845 in x[56]
+infiniti_malloced 734 bytes and stored address 0x100003d000 at x[66]
+infiniti_malloced 1393 bytes and stored address 0x100003e000 at x[57]
+... (omitted)
+infiniti_freed address 0x1000004000 of size 3560 in x[53]
+infiniti_malloced 2417 bytes and stored address 0x1000042000 at x[45]
+infiniti_freed address 0x1000019000 of size 1131 in x[60]
+infiniti_malloced 300 bytes and stored address 0x1000043000 at x[26]
+infiniti_freed address 0x1000041000 of size 3289 in x[42]
+[cs452@localhost user]$ ./infiniti-test5
+result ret[0] is 0
+result ret[1] is 1
+[cs452@localhost user]$ ./infiniti-test6
+s1 is PAHNAPLSIIGYIR
 ```
 Note that seg fault message showed when running infiniti-test2, is expected, and is intentionally showed. It happens because the test program tries to access a freed buffer. If yours does not show this seg fault message, it means your *infiniti_free_pa*() function is not implemented correctly. For example, if your *infiniti_free_pa*() function is completely empty, but your *infiniti_do_page_fault*() works correctly, then this is what you will see when running infiniti-test2.
 
@@ -231,10 +254,13 @@ Due: 23:59pm, March 1st, 2022. Late submission will not be accepted/graded.
 # Grading Rubric (Undergraduate and Graduate)
 Grade: /100
 
-- [ 70 pts] Functional Requirements: page faults handled correctly:
-    - infiniti-test1 runs and ends smoothly: message printed correctly, no program crash, no kernel crash. /20
-    - infiniti-test2 runs and ends with a seg fault: message printed, then seg fault, but no kernel crash. /30
-    - infiniti-test3 runs and ends smoothly: messages printed correctly, no program crash, no kernel crash. /20
+- [ 70 pts] Functional Requirements: page faults handled correctly, memory correctly freed.
+    - infiniti-test1 runs and ends smoothly: message printed correctly, no program crash, no kernel crash. /10
+    - infiniti-test2 runs and ends with a seg fault: message printed, then seg fault, but no kernel crash. /20
+    - infiniti-test3 runs and ends smoothly: messages printed correctly, no program crash, no kernel crash. /10
+    - infiniti-test4 runs to end without crash. /10
+    - infiniti-test5 runs and ends smoothly, messages printed correctly, no program crash, no kernel crash. /10
+    - infiniti-test6 runs and ends smoothly, messages printed correctly, no program crash, no kernel crash. /10
 
 - [10 pts] Module can be installed and removed without crashing the system: 
    - You won't get these points if your module doesn't implement any of the above functional requirements.
