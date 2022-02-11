@@ -48,14 +48,14 @@ The only file you should modify in this assignment is fault.c. You need to imple
  - *infiniti_do_page_fault*(): This function will be called when the application triggers a page fault. In this function you should ask physical memory from the kernel and then update the page tables. The prototype of this function is:
 
 ```c
-int infiniti_do_page_fault(struct infiniti_vm_area_struct *infiniti_vma, uintptr_t fault_addr, u32 error_code)
+int infiniti_do_page_fault(struct infiniti_vm_area_struct *infiniti_vma, uintptr_t fault_addr, u32 error_code);
 ```
 this function should return 0 if a page fault is handled successfully, and return -1 if not. *fault_addr* is the user space address the application is trying to access. To handle the page fault, you need to update the page tables so that a mapping between the *fault_addr* and the physical address you allocated via *get_zero_page*() is created.
 
  - *infiniti_free_pa*(): this function will be called when the application calls *infiniti_free*(). In this function you should give the physical memory back to the kernel and then update the page tables. The prototype of this function is:
 
 ```c
-void infiniti_free_pa(uintptr_t user_addr)
+void infiniti_free_pa(uintptr_t user_addr);
 ```
  Before the application calls your *infiniti_free_pa*() (via *infiniti_free*()), this *user_addr* is mapped to some physical address - thank to your *infiniti_do_page_fault*(). Now when the application calls your *infiniti_free_pa*() (via *infiniti_free*()), you should update the page tables so as to destroy the mapping. In other words, when the application calls *infiniti_free*(), the mapping will no longer exist, and the application should no longer be able to access that same physical address. 
 
