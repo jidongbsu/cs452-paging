@@ -12,7 +12,7 @@ In this assignment, we will write a Linux kernel module called infiniti. This mo
 
 You MUST build against the kernel version (3.10.0-1160.el7.x86\_64), which is the default version of the kernel installed on the cs452 VM.
 
-While working on this assignment, please keep in mind, in current Linux systems, a virtual address is just 48 bits, not 64 bits. And your physical address is at most 52 bits.
+While working on this assignment, please keep in mind, in current x86 based Linux systems, a virtual address is just 48 bits, not 64 bits. And your physical address is at most 52 bits.
 
 ## Book References
 
@@ -254,12 +254,12 @@ Whenever we need to translate a virtual address to a physical address, we need t
 
 Note that this address has its lowest 12 bits all 0s, and if we convert this address to binary, it will be: 0b 111 0111 0010 0111 0010 0000 0000 0000. From this binary number, we can see this address has 31 bits, which is reasonable when the total memory size is 2GB, because 2GB=2^31.
 
-To translate a virtual address to a physical address,
+As we mentioned before, in current Linux systems running on x86 computers, each virtual address is 48 bit. And translation uses 9 bits at a time from the virtual address. To translate a virtual address to a physical address,
 
-1. we get the physical address of the PML4 table from CR3, and use bit 47 to bit 39 of the virtual address to get the correct PML4E.
-2. we use the PML4E to get the physical address of the PDPT table, and use bit 38 to bit 30 of the virtual address to get the correct PDPTE.
-3. we use the PDPTE to get the physical address of the PDT table, and use bit 29 to bit 21 of the virtual address to get the correct PDTE.
-4. we use the PDTE to get the physical address of the page table, and use bit 20 to bit 12 of the virtual address to get the correct PTE.
+1. we get the physical address of the PML4 table from CR3, and use bit 47 to bit 39 (see, bit 47 to bit 39 are 9 bits) of the virtual address to get the correct PML4E.
+2. we use the PML4E to get the physical address of the PDPT table, and use bit 38 to bit 30 (once again, bit 38 to bit 30 are 9 bits) of the virtual address to get the correct PDPTE.
+3. we use the PDPTE to get the physical address of the PDT table, and use bit 29 to bit 21 (once again, bit 29 to bit 21 are 9 bits) of the virtual address to get the correct PDTE.
+4. we use the PDTE to get the physical address of the page table, and use bit 20 to bit 12 (once again, bit 20 to bit 12 are 9 bits)) of the virtual address to get the correct PTE.
 5. we use the PTE to get the page frame number, and use bit 11 to bit 0 of the virtual address to get the offset.
 6. we concatenate the page frame number with the offset to get the physical address.
 
