@@ -233,8 +233,8 @@ The logic here is, the test program allocates a buffer to store this message, an
 In this assignment, we only consider 4KB pages, i.e., each page is 4KB. By default, a 4-level page table structure is used in the Linux kernel running on 64-bit x86 platforms. In Intel's terminology, these 4-level tables are called:
 
  - PML4, or page map level 4; each entry in this table is called  a page map level 4 entry, or PML4E.
- - PDPT, or page directory pointer table; each entry in this table is called a page directory pointer table entry, or PDPTE.
- - PDT, or page directory table; each entry in this table is called a page directory table entry, or PDTE.
+ - PDP Table, or page directory pointer table; each entry in this table is called a page directory pointer table entry, or PDPTE.
+ - PD Table, or page directory table; each entry in this table is called a page directory table entry, or PDTE.
  - PT, or page table; each entry in this table is called a page table entry, or PTE.
 
 <!The 4-level page tables are known as:
@@ -286,14 +286,14 @@ And your *infiniti_free_pa*(), which takes *uintptr_t user_addr* as its paramete
    - set the entire PTE entry to 0. and then, check if the entire page table is free:
      - if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this page table. 
      - otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
-   - set the entire PDTE entry to 0. and then, check if the entire PDT table is free:
-     - if in this PDT table, every entry's present bit is 0, then we can say this PDT table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PDT table.
+   - set the entire PDTE entry to 0. and then, check if the entire PD table is free:
+     - if in this PD table, every entry's present bit is 0, then we can say this PD table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PD table.
      - otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
-   - set the entire PDPTE entry to 0. and then, check if the entire PDPT table is free:
-     - if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PDPT table.
+   - set the entire PDPTE entry to 0. and then, check if the entire PDP table is free:
+     - if in this PDP table, every entry's present bit is 0, then we can say this PDP table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PDP table.
      - otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
    - set the entire PML4E entry to 0. and then, check if the entire PML4 table is free:
-     - if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PML4 table.
+     - if in this PML4 table, every entry's present bit is 0, then we can say this PML4 table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PML4 table.
      - otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
 
 # Submission
