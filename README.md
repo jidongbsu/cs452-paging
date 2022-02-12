@@ -85,7 +85,24 @@ unsigned long cr3;
 cr3 = get_cr3();
 ```
 
-- *is_valid_address*(): already mentioned before.
+- *is_valid_address*(): already mentioned before, see above.
+
+- *is_entire_table_free*(): This function's prototype is:
+
+```c
+int is_entire_table_free(unsigned long table);
+```
+
+You will use this function in your *infiniti_free_pa*() function. Keep reading this document, and you will see it says in step 6 of your *infiniti_free_pa*(), you need to "check if the entire page table is free". This function does exactly that for you. Just pass your table's virtual address to this function. For example,
+
+```c
+unsigned long page_table;
+if(is_entire_table_free(page_table)){
+	do something;
+}else{
+	don something else;
+}
+```
 
 ## Related Kernel APIs
 
@@ -266,10 +283,18 @@ And your *infiniti_free_pa*(), which takes *uintptr_t user_addr* as its paramete
 4. find the PTE, check its present bit, which is bit 0 of the entry, if it is 0, then there is nothing you need to free - there is no valid mapping, so just return; if it is 1, then move on to step 5.
 5. now that you are here, you actually have just "accidentally" walked the whole page tables, and now the PTE contains the physical frame number of the page the application wants to free, so get the offset from *user_addr*, and concatenate the physical frame number with the offset, will give you the physical address you should free, convert this physical address to its kernel space address (via *__va*()), and call *free_page*() to free it.
 6. now that the physical memory page is freed, you need to update the page tables to destroy the mapping. following steps are needed:
-   * set the entire PTE entry to 0. check if the entire page table is free, i.e., if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this page table.
-   * set the entire PDTE entry to 0. check if the entire PDT table is free, i.e., if in this PDT table, every entry's present bit is 0, then we can say this PDT table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PDT table.
-   * set the entire PDPTE entry to 0. check if the entire PDPT table is free, i.e., if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PDPT table.
-   * set the entire PML4E entry to 0. check if the entire PML4 table is free, i.e., if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PML4 table.
+   * set the entire PTE entry to 0. check if the entire page table is free:
+   	* if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this page table. 
+   	* otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
+   * set the entire PDTE entry to 0. check if the entire PDT table is free:
+   	* if in this PDT table, every entry's present bit is 0, then we can say this PDT table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PDT table.
+   	* otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
+   * set the entire PDPTE entry to 0. check if the entire PDPT table is free:
+   	* if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PDPT table.
+   	* otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
+   * set the entire PML4E entry to 0. check if the entire PML4 table is free:
+   	* if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PML4 table.
+   	* otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
 
 # Submission
 
