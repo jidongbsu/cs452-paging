@@ -18,7 +18,7 @@ While working on this assignment, please keep in mind, in current x86 based Linu
 
 Read these chapters carefully in order to prepare yourself for this project:
 
- - Operating Systems: Three Easy Pieces: [Chapter 18: Introduction to Paging](https://pages.cs.wisc.edu/~remzi/OSTEP/vm)
+ - Operating Systems: Three Easy Pieces: [Chapter 18: Introduction to Paging](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-paging.pdf)
  - Operating Systems: Three Easy Pieces: [Chapter 19: Translation Lookaside Buffers](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-tlbs.pdf)
  - Operating Systems: Three Easy Pieces: [Chapter 20: Advanced Page Tables](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-smalltables.pdf)
  - Operating Systems: Three Easy Pieces: [Chapter 21: Swapping: Mechanisms](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-beyondphys.pdf)
