@@ -38,12 +38,12 @@ What this module currently does is: create a file called /dev/infiniti, which pr
 
  - LAZY\_ALLOC: Applications call library function *infiniti_malloc*(), which sends this LAZY\_ALLOC command to the kernel module, so as to allocate memory.
  - LAZY\_FREE: Applications call library function *infiniti_free*(), which sends this LAZY\_FREE command to the kernel module, so as to free memory.
- <! - DUMP\_STATE: Applications call library function *infiniti_dump*(), which sends this DUMP\_STATE command to the kernel module, so as to dump the state of our reserved memory region to the kernel log file /var/log/messages.->
+ <!-- - DUMP\_STATE: Applications call library function *infiniti_dump*(), which sends this DUMP\_STATE command to the kernel module, so as to dump the state of our reserved memory region to the kernel log file /var/log/messages.-->
  - PAGE\_FAULT: Applications call library functions *init_infiniti*(), which registers the application into our memory manager system. Applications managed by our system need to use *infiniti_malloc*() to allocate dynamic memory, and use *infiniti_free*() to free dynamic memory. Such applications need to have their own page fault handler, because we only allocate memory from the aforementioned reserved memory region, which is a memory region the kernel will not handle.
 
 The starter code will manage the reserved memory region, but it will not map any virtual address into a physical address. Thus, when the application tries to call *infiniti_malloc*(), if memory in the reserved memory region is available, the malloc function will succeed, and a pointer will be returned, just like the regular malloc() function. However, because the virtual address pointed to by this pointer is not mapped into anywhere in the physical memory, any access to such an address will just fail. When that access fails, the kernel will deliver a signal to the process (i.e., the application), normally this signal will kill the process, but the process is configured (in *init_infiniti*())to intercept such signals and when such signals are received, the process will deliver a PAGE\_FAULT command to the kernel module, and now in this kernel module, your page fault handler *infiniti_do_page_fault*() will be called. In this handler function, you need to create the mapping, between this user space address, and a physical address. To achieve this, you call *get_zeroed_page*() to allocate physical memory, and then you update the page table so that that user space address is mapped to this physical address. After that, your *infiniti_do_page_fault*() will return, and the application will try to access that user space address again, and this time it will succeed - if your *infiniti_do_page_fault*() function has updated the page table correctly.
 
-The starter code also includes a user-level library, which implements functions such as *init_infiniti*(), *infiniti_malloc*(), *infiniti_free*()<!, *infiniti_dump*()->. Several testing programs (infiniti-test[1-6].c) are also provided. The user-level library, as well as the test programs, are located in the **user** folder. Once you navigate into the **user** folder, you need to run *make* to compile these test programs, and at the same time the user-level library will be automatically compiled and linked into the resulted binary of the test programs.
+The starter code also includes a user-level library, which implements functions such as *init_infiniti*(), *infiniti_malloc*(), *infiniti_free*()<!--, *infiniti_dump*()-->. Several testing programs (infiniti-test[1-6].c) are also provided. The user-level library, as well as the test programs, are located in the **user** folder. Once you navigate into the **user** folder, you need to run *make* to compile these test programs, and at the same time the user-level library will be automatically compiled and linked into the resulted binary of the test programs.
 
 ## Functions You Need to Implement
 
@@ -240,12 +240,12 @@ In this assignment, we only consider 4KB pages, i.e., each page is 4KB. By defau
  - PD Table, or page directory table; each entry in this table is called a page directory table entry, or PDE.
  - PT, or page table; each entry in this table is called a page table entry, or PTE.
 
-<!The 4-level page tables are known as:
+<!--The 4-level page tables are known as:
 
  - Page Global Directory (PGD)
  - Page Upper Directory (PUD).
  - Page Middle Directory (PMD).
- - Page Table Entry directory (PTE).->
+ - Page Table Entry directory (PTE).-->
 
 Each of these tables has 512 entries, and each entry is 8 bytes, and thus in total it's 512x8=4KB per table, which is one page.
 
