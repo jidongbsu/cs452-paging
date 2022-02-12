@@ -51,7 +51,7 @@ The only file you should modify in this assignment is fault.c. You need to imple
 ```c
 int infiniti_do_page_fault(struct infiniti_vm_area_struct *infiniti_vma, uintptr_t fault_addr, u32 error_code);
 ```
-this function should return 0 if a page fault is handled successfully, and return -1 if not. The second parameter *fault_addr* is the user space address the application is trying to access. To handle the page fault, you need to update the page tables so that a mapping between the *fault_addr* and the physical address you allocated via *get_zero_page*() is created.
+this function should return 0 if a page fault is handled successfully, and return -1 if not. The second parameter **fault_addr** is the user space address the application is trying to access. To handle the page fault, you need to update the page tables so that a mapping between the **fault_addr** and the physical address you allocated via *get_zero_page*() is created.
 
 The first parameter **infiniti_vma** will be used once, and only once, at the very beginning of your page fault handler function, to check if this *fault_addr* is within the aforementioned reserved memory region or not. If not, then it is not your page fault handler's responsibility to handle this situation, therefore your handler should just return -1. A helper function called *is_valid_address*() is provided to determine if the *fault_addr* is within the reserved memory region or not, and you can use the function like this:
 
@@ -138,7 +138,7 @@ kernel address is 0xffff880059eca000, and its physical address is 0x59eca000
 kernel address is 0xffff880075faf000, and its physical address is 0x75faf000
 ```
 
- - *__va()* and *__pa()*. Given a physical address, *__va*() gives you its virtual address; given a virtual address, *__pa*() gives you its physical address. Of course, the virtual address gets involved here must be a kernel virtual address. For user virtual address, we still need to walk the page table to do the translation.
+ - *__va*() and *__pa*(). Given a physical address, *__va*() gives you its virtual address; given a virtual address, *__pa*() gives you its physical address. Of course, the virtual address gets involved here must be a kernel virtual address. For user virtual address, we still need to walk the page table to do the translation. Note, there are two underscore signs in *__va*(), and two underscore signs in *__pa*().
 
 ## Expected Results
 
@@ -283,16 +283,16 @@ And your *infiniti_free_pa*(), which takes *uintptr_t user_addr* as its paramete
 4. find the PTE, check its present bit, which is bit 0 of the entry, if it is 0, then there is nothing you need to free - there is no valid mapping, so just return; if it is 1, then move on to step 5.
 5. now that you are here, you actually have just "accidentally" walked the whole page tables, and now the PTE contains the physical frame number of the page the application wants to free, so get the offset from *user_addr*, and concatenate the physical frame number with the offset, will give you the physical address you should free, convert this physical address to its kernel space address (via *__va*()), and call *free_page*() to free it.
 6. now that the physical memory page is freed, you need to update the page tables to destroy the mapping. following steps are needed:
-   - set the entire PTE entry to 0. check if the entire page table is free:
+   - set the entire PTE entry to 0. and then, check if the entire page table is free:
      - if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this page table. 
      - otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
-   - set the entire PDTE entry to 0. check if the entire PDT table is free:
+   - set the entire PDTE entry to 0. and then, check if the entire PDT table is free:
      - if in this PDT table, every entry's present bit is 0, then we can say this PDT table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PDT table.
      - otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
-   - set the entire PDPTE entry to 0. check if the entire PDPT table is free:
+   - set the entire PDPTE entry to 0. and then, check if the entire PDPT table is free:
      - if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PDPT table.
      - otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
-   - set the entire PML4E entry to 0. check if the entire PML4 table is free:
+   - set the entire PML4E entry to 0. and then, check if the entire PML4 table is free:
      - if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PML4 table.
      - otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
 
