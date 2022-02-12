@@ -234,7 +234,7 @@ In this assignment, we only consider 4KB pages, i.e., each page is 4KB. By defau
 
  - PML4, or page map level 4; each entry in this table is called  a page map level 4 entry, or PML4E.
  - PDP Table, or page directory pointer table; each entry in this table is called a page directory pointer table entry, or PDPTE.
- - PD Table, or page directory table; each entry in this table is called a page directory table entry, or PDTE.
+ - PD Table, or page directory table; each entry in this table is called a page directory table entry, or PDE.
  - PT, or page table; each entry in this table is called a page table entry, or PTE.
 
 <!The 4-level page tables are known as:
@@ -258,8 +258,8 @@ As we mentioned before, in current Linux systems running on x86 computers, each 
 
 1. we get the physical address of the PML4 table from CR3, and use bit 47 to bit 39 (see, bit 47 to bit 39 are 9 bits) of the virtual address to get the correct PML4E.
 2. we use the PML4E to get the physical address of the PDP table, and use bit 38 to bit 30 (once again, bit 38 to bit 30 are 9 bits) of the virtual address to get the correct PDPTE.
-3. we use the PDPTE to get the physical address of the PD table, and use bit 29 to bit 21 (once again, bit 29 to bit 21 are 9 bits) of the virtual address to get the correct PDTE.
-4. we use the PDTE to get the physical address of the page table, and use bit 20 to bit 12 (once again, bit 20 to bit 12 are 9 bits)) of the virtual address to get the correct PTE.
+3. we use the PDPTE to get the physical address of the PD table, and use bit 29 to bit 21 (once again, bit 29 to bit 21 are 9 bits) of the virtual address to get the correct PDE.
+4. we use the PDE to get the physical address of the page table, and use bit 20 to bit 12 (once again, bit 20 to bit 12 are 9 bits)) of the virtual address to get the correct PTE.
 5. we use the PTE to get the page frame number, and use bit 11 to bit 0 of the virtual address to get the offset.
 6. we concatenate the page frame number with the offset to get the physical address.
 
@@ -271,7 +271,7 @@ To achieve the goals we just described, your *infiniti_do_page_fault*() should d
 
 1. find the PML4E, check its present bit, which is bit 0 of the entry, if it is 1, then move on to step 2; if it is 0, then we need to call *get_zeroed_page*() to allocate a page for the PDP table, and update the PML4E entry to reflect that this PDP table is present, is writable, is a user page. This requires you to change the PML4E's bit 0, bit 1, bit 2 to 1. Also, store the physical frame number of the allocated page into the PML4E entry's bit 12 to bit 51. 
 2. find the PDPTE, check its present bit, which is bit 0 of the entry, if it is 1, then move on to step 3; if it is 0, then we need to call *get_zeroed_page*() to allocate a page for the PD table, and update the PDPTE entry to reflect that this PD table is present, is writable, is a user page. This requires you to change the PDPTE's bit 0, bit 1, bit 2 to 1. Also, store the physical frame number of the allocated page into the PDPTE entry's bit 12 to bit 51.
-3. find the PDTE, check its present bit, which is bit 0 of the entry, if it is 1, then move on to step 4; if it is 0, then we need to call *get_zeroed_page*() to allocate a page for the page table, and update the PDTE entry to reflect that this page table is present, is writable, is a user page. This requires you to change the PDTE's bit 0, bit 1, bit 2 to 1. Also, store the physical frame number of the allocated page into the PDPE entry's bit 12 to bit 51.
+3. find the PDE, check its present bit, which is bit 0 of the entry, if it is 1, then move on to step 4; if it is 0, then we need to call *get_zeroed_page*() to allocate a page for the page table, and update the PDE entry to reflect that this page table is present, is writable, is a user page. This requires you to change the PDE's bit 0, bit 1, bit 2 to 1. Also, store the physical frame number of the allocated page into the PDPE entry's bit 12 to bit 51.
 4. find the PTE, check its present bit, which is bit 0 of the entry, if it is 1, then move on to step 5; if it is 0, then we need to call *get_zeroed_page*() to allocate a page for the physical page, and update the PTE entry to reflect that this physical page is present, is writable, is a user page. This requires you to change the PTE's bit 0, bit 1, bit 2 to 1. Also, store the physical frame number of the allocated page into the PTE entry's bit 12 to bit 51.
 5. return 0.
 
@@ -279,14 +279,14 @@ And your *infiniti_free_pa*(), which takes *uintptr_t user_addr* as its paramete
 
 1. find the PML4E, check its present bit, which is bit 0 of the entry, if it is 0, then there is nothing you need to free - there is no valid mapping, so just return; if it is 1, then move on to step 2.
 2. find the PDPTE, check its present bit, which is bit 0 of the entry, if it is 0, then there is nothing you need to free - there is no valid mapping, so just return; if it is 1, then move on to step 3.
-3. find the PDTE, check its present bit, which is bit 0 of the entry, if it is 0, then there is nothing you need to free - there is no valid mapping, so just return; if it is 1, then move on to step 4.
+3. find the PDE, check its present bit, which is bit 0 of the entry, if it is 0, then there is nothing you need to free - there is no valid mapping, so just return; if it is 1, then move on to step 4.
 4. find the PTE, check its present bit, which is bit 0 of the entry, if it is 0, then there is nothing you need to free - there is no valid mapping, so just return; if it is 1, then move on to step 5.
 5. now that you are here, you actually have just "accidentally" walked the whole page tables, and now the PTE contains the physical frame number of the page the application wants to free, so get the offset from *user_addr*, and concatenate the physical frame number with the offset, will give you the physical address you should free, convert this physical address to its kernel space address (via *__va*()), and call *free_page*() to free it.
 6. now that the physical memory page is freed, you need to update the page tables to destroy the mapping. following steps are needed:
    - set the entire PTE entry to 0. and then, check if the entire page table is free:
      - if in this page table, every entry's present bit is 0, then we can say this page table is not used at all, and therefore its memory should be freed. call *free_page*() to free this page table. 
      - otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
-   - set the entire PDTE entry to 0. and then, check if the entire PD table is free:
+   - set the entire PDE entry to 0. and then, check if the entire PD table is free:
      - if in this PD table, every entry's present bit is 0, then we can say this PD table is not used at all, and therefore its memory should be freed. call *free_page*() to free this PD table.
      - otherwise - at least one entry's present bit is 1, then we should not free this table, therefore we just return.
    - set the entire PDPTE entry to 0. and then, check if the entire PDP table is free:
