@@ -23,6 +23,9 @@ Read these chapters carefully in order to prepare yourself for this project:
  - Operating Systems: Three Easy Pieces: [Chapter 20: Advanced Page Tables](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-smalltables.pdf)
  - Operating Systems: Three Easy Pieces: [Chapter 21: Swapping: Mechanisms](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-beyondphys.pdf)
 
+Other reference:
+ - Intel Software Developer's Manual, we will call it the Intel SDM in this README.
+
 # Specification
 
 According to the textbook chapter 21: "**The act of accessing a page that is not in physical memory is commonly referred to as a page fault**". When a page fault happens, a kernel level function will be called to handle it, and this function is known as the page fault handler. In this assignment, you will develop a page fault handler in a Linux system. The Linux kernel has its own page fault handler. In this assignment, we do not intend to take over the default page fault handler, rather we try to maintain a separate handler, this handler will only handle memory pages mapped into a specific reserved memory region which the kernel will ignore. This memory region is in between virtual address 0x1000000000LL and virtual address 0x3000000000LL, and it is in the user space.
@@ -256,11 +259,11 @@ Note that this address has its lowest 12 bits all 0s, and if we convert this add
 
 As we mentioned before, in current Linux systems running on x86 computers, each virtual address has 48 bits. And translation uses 9 bits at a time from the virtual address. To translate a virtual address to a physical address,
 
-1. we get the physical address of the PML4 table from CR3, and use bit 47 to bit 39 (see, bit 47 to bit 39 are 9 bits) of the virtual address to get the correct PML4E.
-2. we use the PML4E to get the physical address of the PDP table, and use bit 38 to bit 30 (once again, bit 38 to bit 30 are 9 bits) of the virtual address to get the correct PDPTE.
-3. we use the PDPTE to get the physical address of the PD table, and use bit 29 to bit 21 (once again, bit 29 to bit 21 are 9 bits) of the virtual address to get the correct PDE.
-4. we use the PDE to get the physical address of the page table, and use bit 20 to bit 12 (once again, bit 20 to bit 12 are 9 bits)) of the virtual address to get the correct PTE.
-5. we use the PTE to get the page frame number, and use bit 11 to bit 0 of the virtual address to get the offset.
+1. we get the physical address of the PML4 table from CR3 - the Intel SDM says, a 4-KByte naturally aligned PML4 table is located at the physical address specified in bits 51:12 of CR3; and use bit 47:39 of the virtual address to get the correct PML4E. (use bits 47:39 of the virtual address as bit 11:3 of the entry's offset, lowest 3 bits are all 0.)
+2. we use the PML4E to get the physical address of the PDP table - the Intel SDM says, a 4-KByte naturally aligned page-directory-pointer table is located at the physical address specified in bits 51:12 of the PML4E; and use bit 38:30 of the virtual address to get the correct PDPTE. (use bits 38:30 of the virtual address as bit 11:3 of the entry's offset, lowest 3 bits are all 0.)
+3. we use the PDPTE to get the physical address of the PD table - the Intel SDM says, a 4-KByte naturally aligned page directory is located at the physical address specified in bits 51:12 of the PDPTE; and use bit 29:21 of the virtual address to get the correct PDE. (use bits 29:21 of the virtual address as bit 11:3 of the entry's offset, lowest 3 bits are all 0.)
+4. we use the PDE to get the physical address of the page table - the Intel SDM says, a 4-KByte naturally aligned page table is located at the physical address specified in bits 51:12 of the PDE; and use bit 20:12 of the virtual address to get the correct PTE. (use bits 20:12 of the virtual address as bit 11:3 of the entry's offset, lowest 3 bits are all 0.)
+5. we use the PTE to get the page frame number - the Intel SDM says, PTE's bit 51:12 gives us the page frame number, and use bit 11 to bit 0 of the virtual address to get the offset.
 6. we concatenate the page frame number with the offset to get the physical address.
 
 Note: bit 47 to bit 39 are 9 bits; bit 38 to bit 30 are 9 bits, bit 29 to bit 21 are 9 bits, bit 20 to bit 12 are 9 bits. And 2^9 is 512, this matches with the fact that each of these tables has 512 entries: you only need 9 bits to index a table when the table has 512 entries in total.
