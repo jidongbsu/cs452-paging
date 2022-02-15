@@ -141,7 +141,7 @@ kernel address is 0xffff880059eca000, and its physical address is 0x59eca000
 kernel address is 0xffff880075faf000, and its physical address is 0x75faf000
 ```
 
- - *__va*() and *__pa*(). Given a physical address, *__va*() gives you its virtual address; given a virtual address, *__pa*() gives you its physical address. Of course, the virtual address gets involved here must be a kernel virtual address. For user virtual address, we still need to walk the page table to do the translation. Note, there are two underscore signs in *__va*(), and two underscore signs in *__pa*().
+ - *__va*() and *__pa*(). Given a physical address, *__va*() gives you its virtual address; given a virtual address, *__pa*() gives you its physical address. Of course, the virtual address gets involved here must be a kernel virtual address. For user virtual address, we still need to walk the page table to do the translation. Note, there are two underscore signs in *__va*(), and two underscore signs in *__pa*(). *__va*() returns a void \* type pointer, and therefore you may want to cast it, for example, to unsigned long. *__pa*() returns an unsigned long address, so you very likely do not need to cast.
 
 ## Expected Results
 
