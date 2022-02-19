@@ -127,10 +127,10 @@ and then later this is how you use *free_page*().
 free_page(kernel_addr);
 ```
 
-the address returned by *get_zeroed_page*() is a page aligned virtual address (in kernel space), which means its lowest 12 bits are 0, and its corresponding physical address also has its lowest 12 bits be 0. For example, if you add a printk statement to print the address represented by the above *kernel_vaddr* variable:
+the address returned by *get_zeroed_page*() is a page aligned virtual address (in kernel space), which means its lowest 12 bits are 0, and its corresponding physical address also has its lowest 12 bits be 0. For example, if you add a printk statement to print the address represented by the above *kernel_addr* variable:
 
 ```c
-printk(KERN_INFO "kernel address is %lx, and its physical address is %lx\n", kernel_vaddr, __pa(kernel_vaddr));
+printk(KERN_INFO "kernel address is %lx, and its physical address is %lx\n", kernel_addr, __pa(kernel_addr));
 ```
 
 in your log, you will see some messages like this:
