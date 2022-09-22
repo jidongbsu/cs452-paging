@@ -5,7 +5,8 @@ void main(int argc, char ** argv) {
         init_infiniti();
         char * buf;
 	infiniti_dump();
-        buf = infiniti_malloc(4098);
+	/* this used to be 4098, it seems that we are more likely to get a seg fault (at the end of this program) if we change it from 4098 to 1024*1024. */
+        buf = infiniti_malloc(1024*1024);
 	infiniti_dump();
 
         buf[50] = 'H';
