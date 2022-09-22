@@ -54,7 +54,7 @@ The only file you should modify in this assignment is fault.c. You need to imple
 ```c
 int infiniti_do_page_fault(struct infiniti_vm_area_struct *infiniti_vma, uintptr_t fault_addr, u32 error_code);
 ```
-this function should return 0 if a page fault is handled successfully, and return -1 if not. The second parameter **fault_addr** is the user space address the application is trying to access. To handle the page fault, you need to update the page tables so that a mapping between the **fault_addr** and the physical address you allocated via *get_zero_page*() is created.
+this function should return 0 if a page fault is handled successfully, and return -1 if not. The second parameter **fault_addr** is the user space address the application is trying to access. To handle the page fault, you need to update the page tables so that a mapping between the **fault_addr** and the physical address you allocated via *get_zeroed_page*() is created.
 
 The first parameter **infiniti_vma** will be used once, and only once, at the very beginning of your page fault handler function, to check if this *fault_addr* is within the aforementioned reserved memory region or not. If not, then it is not your page fault handler's responsibility to handle this situation, therefore your handler should just return -1. A helper function called *is_valid_address*() is provided to determine if the *fault_addr* is within the reserved memory region or not, and you can use the function like this:
 
@@ -75,7 +75,7 @@ if (error_code == SEGV_ACCERR)
 ```c
 void infiniti_free_pa(uintptr_t user_addr);
 ```
- Before the application calls your *infiniti_free_pa*() (via *infiniti_free*()), this *user_addr* is mapped to some physical address - thank to your *infiniti_do_page_fault*(). Now when the application calls your *infiniti_free_pa*() (via *infiniti_free*()), you should update the page tables so as to destroy the mapping. In other words, when the application calls *infiniti_free*(), the mapping will no longer exist, and the application should no longer be able to access that same physical address. 
+ Before the application calls your *infiniti_free_pa*() (via *infiniti_free*()), this *user_addr* is mapped to some physical address - thanks to your *infiniti_do_page_fault*(). Now when the application calls your *infiniti_free_pa*() (via *infiniti_free*()), you should update the page tables so as to destroy the mapping. In other words, when the application calls *infiniti_free*(), the mapping will no longer exist, and the application should no longer be able to access that same physical address. 
 
 ## Provided Helper Functions
 
@@ -301,7 +301,7 @@ And your *infiniti_free_pa*(), which takes *uintptr_t user_addr* as its paramete
 
 # Submission
 
-Due: 23:59pm, March 1st, 2022. Late submission will not be accepted/graded.
+Due: 23:59pm, October 6th, 2022. Late submission will not be accepted/graded.
 
 # Grading Rubric (Undergraduate and Graduate)
 Grade: /100
@@ -322,5 +322,5 @@ Grade: /100
    - You are not allowed to suppress warnings. (you won't get these points if your module doesn't implement any of the above functional requirements.)
 
 - [10 pts] Documentation:
-   - README.md file (replace this current README.md with a new one using the README template. You do not need to check in this current README file.)
+   - README.md file (rename this current README file to README.orig and rename the README.template to README.md.)
    - You are required to fill in every section of the README template, missing 1 section will result in a 2-point deduction.
