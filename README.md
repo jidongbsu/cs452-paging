@@ -282,6 +282,8 @@ To achieve the goals we just described, your *infiniti_do_page_fault*() should d
 4. find the PTE, check its present bit, which is bit 0 of the entry, if it is 1, then move on to step 5; if it is 0, then we need to call *get_zeroed_page*() to allocate a page for the physical page, and update the PTE entry to reflect that this physical page is now present, is writable, is a user page. This requires you to change the PTE's bit 0, bit 1, bit 2 to 1. Also, store the bits 51:12 of the allocated page's physical address into the PTE entry's bits 51:12. 
 5. return 0.
 
+**Challenge**: an average student will need about 100 lines of C code to implement this *infiniti_do_page_fault*() function. Can you do it with about 25 lines of C code? Instead of writing it in 4 pieces, how about we use a loop which iterates 4 times?
+
 And your *infiniti_free_pa*(), which takes *uintptr_t user_addr* as its parameter, should do the following:
 
 1. find the PML4E, check its present bit, which is bit 0 of the entry, if it is 0, then there is nothing you need to free - there is no valid mapping, so just return; if it is 1, then move on to step 2.
